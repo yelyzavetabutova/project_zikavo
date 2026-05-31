@@ -59,8 +59,3 @@ class MemoryGameGUI:
         for r in range(self.rows):
             for c in range(self.cols):
                 self.buttons[r][c].config(text="?", bg="#FF69B4")
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = MemoryGameGUI(root)
-    root.mainloop()
