@@ -6,6 +6,7 @@ class MemoryGameLogic:
         self.cards = []
         self.revealed = []
         self.first_selected = None
+        self.moves = 0
         self.reset_game()
 
     def reset_game(self):
@@ -15,6 +16,7 @@ class MemoryGameLogic:
         self.cards = [values[i * self.cols:(i + 1) * self.cols] for i in range(self.rows)]
         self.revealed = [[False for _ in range(self.cols)] for _ in range(self.rows)]
         self.first_selected = None
+        self.moves = 0
 
     def get_value(self, row, col):
         return self.cards[row][col]
@@ -33,6 +35,7 @@ class MemoryGameLogic:
             if r1 == row and c1 == col:
                 return None
             self.first_selected = None
+            self.moves += 1
             if self.cards[r1][c1] == self.cards[row][col]:
                 self.revealed[r1][c1] = True
                 self.revealed[row][col] = True
