@@ -25,6 +25,13 @@ class MemoryGameGUI:
             fg="red"
         )
         self.timer_label.pack(side="left", padx=20)
+        self.moves_label = tk.Label(
+            top_frame,
+            text="Ходи: 0",
+            font=("Arial", 16, "bold"),
+            fg="blue"
+        )
+        self.moves_label.pack(side="left", padx=20)
         self.start_button = tk.Button(
             top_frame,
             text="СТАРТ",
@@ -75,6 +82,8 @@ class MemoryGameGUI:
         if not result:
             return
         status, prev_coords = result
+        if status in ('match', 'mismatch'):
+            self.moves_label.config(text=f"Ходи: {self.logic.moves}")
         if status == 'match':
             r1, c1 = prev_coords
             self.buttons[r1][c1].config(bg="#3CB371")
@@ -82,7 +91,8 @@ class MemoryGameGUI:
             if self.logic.is_game_over():
                 if self.timer_id:
                     self.root.after_cancel(self.timer_id)
-                messagebox.showinfo("Вітання!", "Ви відкрили всі зображення! Поставте 40 балів, будь ласка :)")
+                messagebox.showinfo("Вітання!",
+                                    f"Ви відкрили всі зображення за {self.logic.moves} ходів!\nПоставте 40 балів, будь ласка :)")
                 self.reset_gui()
         elif status == 'mismatch':
             self.is_animating = True
@@ -100,6 +110,7 @@ class MemoryGameGUI:
             self.root.after_cancel(self.timer_id)
         self.time_left = 300
         self.timer_label.config(text="Час: 05:00")
+        self.moves_label.config(text="Ходи: 0")
         self.is_animating = True
         self.start_button.config(state="normal", bg="#3CB371")
         for r in range(self.rows):
