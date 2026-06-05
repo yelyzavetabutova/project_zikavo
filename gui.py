@@ -10,6 +10,13 @@ class MemoryGameGUI:
             "Легкий (4х4)": {"rows": 4, "cols": 4, "time": 360},
             "Складний (6х6)": {"rows": 6, "cols": 6, "time": 240}
         }
+        self.colors = {
+            "Рожевий": "#FF69B4",
+            "Блакитний": "#87CEFA",
+            "М'ятний": "#98FB98",
+            "Фіолетовий": "#9370DB",
+            "Помаранчевий": "#FFA500"
+        }
         self.rows = 4
         self.cols = 4
         self.logic = MemoryGameLogic(self.rows, self.cols)
@@ -17,57 +24,57 @@ class MemoryGameGUI:
         self.time_left = 360
         self.timer_id = None
         self.buttons = []
+        self.current_color = self.colors["Рожевий"]
         self.create_widgets()
 
     def create_widgets(self):
         top_frame = tk.Frame(self.root)
         top_frame.pack(side="top", fill="x", pady=10)
         self.timer_label = tk.Label(
-            top_frame,
-            text="Час: --:--",
-            font=("Arial", 14, "bold"),
-            fg="red"
+            top_frame, text="Час: --:--", font=("Arial", 12, "bold"), fg="red"
         )
-        self.timer_label.pack(side="left", padx=15)
+        self.timer_label.pack(side="left", padx=10)
         self.moves_label = tk.Label(
-            top_frame,
-            text="Ходи: 0",
-            font=("Arial", 14, "bold"),
-            fg="blue"
+            top_frame, text="Ходи: 0", font=("Arial", 12, "bold"), fg="blue"
         )
-        self.moves_label.pack(side="left", padx=15)
-        tk.Label(top_frame, text="Складність:", font=("Arial", 11, "bold")).pack(side="left", padx=5)
+        self.moves_label.pack(side="left", padx=10)
+        tk.Label(top_frame, text="Складність:", font=("Arial", 10, "bold")).pack(side="left", padx=(10, 2))
         self.diff_var = tk.StringVar(value="Легкий (4х4)")
         self.diff_menu = tk.OptionMenu(top_frame, self.diff_var, *self.difficulties.keys())
         self.diff_menu.config(font=("Arial", 10))
-        self.diff_menu.pack(side="left", padx=5)
-        self.start_button = tk.Button(
-            top_frame,
-            text="СТАРТ",
-            font=("Arial", 12, "bold"),
-            bg="#3CB371",
-            fg="white",
-            command=self.start_game
+        self.diff_menu.pack(side="left", padx=2)
+        tk.Label(top_frame, text="Колір:", font=("Arial", 10, "bold")).pack(side="left", padx=(10, 2))
+        self.color_var = tk.StringVar(value="Рожевий")
+        self.color_menu = tk.OptionMenu(
+            top_frame, self.color_var, *self.colors.keys(), command=self.update_preview_color
         )
-        self.start_button.pack(side="right", padx=15)
+        self.color_menu.config(font=("Arial", 10))
+        self.color_menu.pack(side="left", padx=2)
+        self.start_button = tk.Button(
+            top_frame, text="СТАРТ", font=("Arial", 12, "bold"), bg="#3CB371", fg="white", command=self.start_game
+        )
+        self.start_button.pack(side="right", padx=10)
         self.grid_frame = tk.Frame(self.root)
         self.grid_frame.pack(side="bottom", padx=10, pady=10)
         self.build_card_grid()
+
+    def update_preview_color(self, selected_color):
+        if self.start_button['state'] == 'normal':
+            self.current_color = self.colors[selected_color]
+            for r in range(self.rows):
+                for c in range(self.cols):
+                    self.buttons[r][c].config(bg=self.current_color)
 
     def build_card_grid(self):
         for widget in self.grid_frame.winfo_children():
             widget.destroy()
         self.buttons = [[None for _ in range(self.cols)] for _ in range(self.rows)]
+        self.current_color = self.colors[self.color_var.get()]
         for r in range(self.rows):
             for c in range(self.cols):
                 btn = tk.Button(
-                    self.grid_frame,
-                    text="?",
-                    font=("Arial", 18, "bold"),
-                    width=4,
-                    height=2,
-                    bg="#FF69B4",
-                    fg="white",
+                    self.grid_frame, text="?", font=("Arial", 18, "bold"),
+                    width=4, height=2, bg=self.current_color, fg="white",
                     command=lambda row=r, col=c: self.on_card_click(row, col)
                 )
                 btn.grid(row=r, column=c, padx=4, pady=4)
@@ -85,6 +92,7 @@ class MemoryGameGUI:
         self.build_card_grid()
         self.start_button.config(state="disabled", bg="#A9A9A9")
         self.diff_menu.config(state="disabled")
+        self.color_menu.config(state="disabled")
         self.moves_label.config(text="Ходи: 0")
         self.is_animating = False
         self.update_timer()
@@ -114,6 +122,7 @@ class MemoryGameGUI:
             r1, c1 = prev_coords
             self.buttons[r1][c1].config(bg="#3CB371")
             self.buttons[row][col].config(bg="#3CB371")
+
             if self.logic.is_game_over():
                 if self.timer_id:
                     self.root.after_cancel(self.timer_id)
@@ -126,19 +135,20 @@ class MemoryGameGUI:
             self.root.after(1000, lambda: self.hide_cards(r1, c1, row, col))
 
     def hide_cards(self, r1, c1, r2, c2):
-        self.buttons[r1][c1].config(text="?", bg="#FF69B4")
-        self.buttons[r2][c2].config(text="?", bg="#FF69B4")
+        self.buttons[r1][c1].config(text="?", bg=self.current_color)
+        self.buttons[r2][c2].config(text="?", bg=self.current_color)
         self.is_animating = False
 
     def reset_gui(self):
         if self.timer_id:
             self.root.after_cancel(self.timer_id)
-
         self.timer_label.config(text="Час: --:--")
         self.moves_label.config(text="Ходи: 0")
         self.is_animating = True
         self.start_button.config(state="normal", bg="#3CB371")
         self.diff_menu.config(state="normal")
+        self.color_menu.config(state="normal")
+        self.current_color = self.colors[self.color_var.get()]
         for r in range(self.rows):
             for c in range(self.cols):
-                self.buttons[r][c].config(text="?", bg="#FF69B4")
+                self.buttons[r][c].config(text="?", bg=self.current_color)
